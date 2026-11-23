@@ -3,7 +3,7 @@ Run from the repository: PYTHONPATH=src python templates/aws_etl.py
 """
 from pathlib import Path
 
-from open_diagram import Diagram, Note, Resource, Theme
+from open_diagram import Diagram, Resource, Theme
 
 HERE = Path(__file__).resolve().parent
 ASSETS = HERE / "assets" / "aws"
@@ -28,9 +28,7 @@ def build() -> Diagram:
     theme = Theme(paper="#FFF9E8", panel_fill="#FFF3C8", panel_stroke="#CCB776",
                   link_labels={"flow": "Data and metadata", "control": "MWAA task control"})
     theme.tones["accent"] = "#F4DEA0"
-    d = Diagram("AWS ETL resource DAG", tag="TEMPLATE", theme=theme,
-                subtitle="A batch data platform: individual resources inside labeled, pastel-yellow containers.",
-                note=Note("Illustrative workload", "Fictional account; no deployed resources", "Dashed arrows: orchestration"))
+    d = Diagram("AWS ETL resource DAG", theme=theme, legend=False)
     nodes = {
         key: d.add(Resource(label, sub=service, icon=str(ASSETS / artwork), name=key), x, y)
         for key, label, service, artwork, x, y in RESOURCES
