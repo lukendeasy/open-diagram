@@ -289,7 +289,7 @@ The [connectivity template](templates/aws_architecture.py) shows
 nested network boundaries. Both include cached icons and render offline. The resource/enclosure API accepts
 Azure and GCP artwork too. These Python templates live in the checkout, alongside [icon credits](templates/assets/README.md).
 
-![AWS ETL resource DAG in labeled pastel-yellow containers with sloped lids](docs/images/aws_etl.png)
+![AWS Data Ingestion with MWAA in labeled pastel-yellow containers with sloped lids](docs/images/aws_etl.png)
 
 ```python
 from open_diagram import Diagram, Resource, Theme

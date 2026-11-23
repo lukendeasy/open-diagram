@@ -28,7 +28,7 @@ def build() -> Diagram:
     theme = Theme(paper="#FFF9E8", panel_fill="#FFF3C8", panel_stroke="#CCB776",
                   link_labels={"flow": "Data and metadata", "control": "MWAA task control"})
     theme.tones["accent"] = "#F4DEA0"
-    d = Diagram("AWS ETL resource DAG", theme=theme, legend=False)
+    d = Diagram("AWS Data Ingestion with MWAA", theme=theme, legend=False)
     nodes = {
         key: d.add(Resource(label, sub=service, icon=str(ASSETS / artwork), name=key), x, y)
         for key, label, service, artwork, x, y in RESOURCES
