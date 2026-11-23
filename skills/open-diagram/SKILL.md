@@ -16,7 +16,9 @@ contains separate AWS, Azure and GCP mappings. The skill's Python workflow downl
 [cloud templates](../../templates/README.md): place each `Resource` independently with its large icon and label,
 then use `d.enclosure()` to nest account, network, subnet or logical boundaries. Choose `border="solid"`, `"dashed"`
 or `"dotted"` independently of deployment status; use link `dash="dashed"` and a separate `control` kind for job
-orchestration. Use compact `Tile` panels for summaries. Install the companion skill if it is missing and point its `ICON_DIR` at the mappings.
+orchestration. For filled section containers with the original sloped panel lids, set `style="panel", tone="accent"`
+on enclosures; the AWS ETL template demonstrates a pastel-yellow background and six labeled sections.
+Use compact `Tile` panels for summaries. Install the companion skill if it is missing and point its `ICON_DIR` at the mappings.
 Use that Python workflow for icon diagrams; JSON, Mermaid and MCP inputs do not support tile icons.
 
 For diagrams without icons, if the open-diagram MCP tools are available (`format_guide`, `check`, `draw`, `describe`), use them: read `format_guide` once, write the diagram as JSON, call `check` until it reports 0 problems, then `draw` and look at the picture it returns. Skip to step 5 for the final review. Otherwise:

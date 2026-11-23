@@ -104,7 +104,7 @@ Each example is one script in [`examples/`](https://github.com/lukendeasy/open-d
 | `columns([[...], [...]])` and `stack([...])` | Place columns left to right, each one top to bottom |
 | `ring(blocks, center=[...])` | Place blocks around a circle, with optional blocks in the middle; returns both lists |
 | `group(label, members, sub=)` | A shaded, dashed area around some blocks |
-| `enclosure(label, members, border=, sub=, pad=, fill=, stroke=)` | A boundary around resources or nested enclosures; `border` is `solid`, `dashed` or `dotted`, independent of deployment state |
+| `enclosure(label, members, border=, sub=, pad=, fill=, stroke=, style=, tone=)` | A boundary around resources or nested enclosures; `style="panel"` adds the original sloped lid and a filled header; borders are `solid`, `dashed` or `dotted`, independent of deployment state |
 | `link(a, b, kind=, label=, start=, end=, via_x=, via_y=, dash=)` | An arrow. `kind="planned"` is dotted. `dash` optionally overrides the stroke style. `start="auto"` and `end="auto"` pick the sides that face each other. `via_y` routes it through a lane, for example above everything |
 | `save(path)` | Write the SVG and PNG, print a summary, raise `LayoutError` if there are problems |
 | `render()` | Return the SVG text and a report without writing files |
@@ -280,14 +280,16 @@ The icons belong to Amazon, Microsoft and Google, and keep their own terms; this
 
 For cloud topology, start with the [cloud templates](templates/README.md). Resources have large service icons with
 labels underneath, and connect individually inside nested account, VPC, subnet or logical enclosures.
-Enclosure borders can be solid, dashed or dotted. Dashed task-control connections are independent of planned status.
+Enclosures can use simple boundaries or the original panel's sloped lid and filled header with `style="panel"`.
+Borders can be solid, dashed or dotted. Dashed task-control connections are independent of planned status.
 
 The [AWS ETL template](templates/aws_etl.py) shows MWAA coordinating three Lambda extractors, with separate S3,
-Glue, catalog, Athena and QuickSight resources. The [connectivity template](templates/aws_architecture.py) shows
+Glue, catalog, Athena and QuickSight resources in six labeled pastel-yellow containers.
+The [connectivity template](templates/aws_architecture.py) shows
 nested network boundaries. Both include cached icons and render offline. The resource/enclosure API accepts
 Azure and GCP artwork too. These Python templates live in the checkout, alongside [icon credits](templates/assets/README.md).
 
-![AWS ETL resource DAG with large icons and dashed nested boundaries](docs/images/aws_etl.png)
+![AWS ETL resource DAG in labeled pastel-yellow containers with sloped lids](docs/images/aws_etl.png)
 
 ```python
 from open_diagram import Diagram, Resource, Theme

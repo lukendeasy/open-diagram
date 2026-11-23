@@ -7,7 +7,7 @@ they can contain other enclosures.
 
 | Template | Purpose | Preview |
 | --- | --- | --- |
-| [aws_etl.py](aws_etl.py) | MWAA orchestrates three Lambda extractors; raw S3, Glue, curated S3, a catalog, Athena and QuickSight are explicit resources | [PNG](../docs/images/aws_etl.png) |
+| [aws_etl.py](aws_etl.py) | Six labeled pastel-yellow containers with sloped lids: orchestrate, extract, land, transform, curate/catalog, query/visualize | [PNG](../docs/images/aws_etl.png) |
 | [aws_architecture.py](aws_architecture.py) | Account, VPC and subnet boundaries around API Gateway, Lambda, RDS and S3 connectivity | [PNG](../docs/images/aws_architecture.png) |
 
 From the checkout, after installing the package's dependencies:
@@ -52,8 +52,24 @@ provider also requires choosing appropriate services and boundaries.
 returns an enclosure that can be included in a later enclosure. Members must already
 belong to the same diagram. The parent includes each child's full boundary and heading.
 Borders can be solid, dashed or dotted. `fill="none"` makes the area transparent; leaving
-colors unset uses `Theme.group_fill` and `Theme.group_stroke`. Styling does not imply that
+colors unset uses `Theme.group_fill` and `Theme.group_stroke` for outline enclosures. Styling does not imply that
 resources are planned or deployed. `d.group()` retains its existing shaded-group behavior.
+
+For the original OpenDiagram container look, add `style="panel", tone="accent"`. This
+reuses the panel's sloped lid, with a filled header band and independently connected resources
+inside. The lid, header, subtitle and nested child containers all count toward measured bounds.
+Panel containers use `Theme.panel_fill` and `Theme.panel_stroke` unless `fill` or `stroke`
+overrides them; `tone` selects a header color from `Theme.tones` or a hex color.
+`Theme.lid=0` turns the sloped lid off.
+
+The ETL template sets a pale-yellow `Theme.paper` background and warm yellow panel colors.
+Edit its `CONTAINER` constant (`"panel"` or `"outline"`) and `BOUNDARY` constant (`"solid"`,
+`"dashed"` or `"dotted"`) to select the presentation without changing its resources or links:
+
+```python
+extract = d.enclosure("02  Extract", [a], style="panel", tone="accent", border="solid")
+d.enclosure("AWS account", [extract, b], style="panel", tone="accent", border="solid", pad=40)
+```
 
 For orchestration, add a distinct kind and style it independently of deployment status:
 

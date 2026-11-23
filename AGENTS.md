@@ -31,7 +31,7 @@ needs a browser. CI (`.github/workflows/test.yml`) runs the tests on Python 3.10
 | `src/open_diagram/fonts.py` | `Face` (fontTools): glyph outlines, advance widths, GPOS pair kerning. `text_width`, `cap_height`, `wrap`, `fmt` |
 | `src/open_diagram/svg.py` | `Canvas`: SVG primitives; `text()` emits outline paths with a `<title>` holding the string |
 | `src/open_diagram/theme.py` | `Theme` (colors, statuses, tones, type sizes, spacing, 3D `lid`/`depth`), `Status`, `shade()` |
-| `src/open_diagram/blocks.py` | `Block` base and `Resource`, `Tile`, `Tiles`, `Text`, `Card`, `Note`, `Graph`, `Row`, `Panel` |
+| `src/open_diagram/blocks.py` | `Block` base and `Resource`, `Tile`, `Tiles`, `Text`, `Card`, `Note`, `Graph`, `Row`, `Panel`; shared `_panel_frame` for panels and resource containers |
 | `src/open_diagram/diagram.py` | `Diagram`: placement, `link`/`group`, routing, `_check()`, legend and header, `render()`, `save()` |
 | `src/open_diagram/describe.py` | `describe(diagram)`: the plain-text description behind `Diagram.describe()` and the SVG `<desc>` |
 | `src/open_diagram/spec.py` | `from_spec(dict)` / `load_spec(path)`: JSON descriptions; `SpecError` names the place of every mistake |
@@ -117,6 +117,8 @@ Cloud resource starters live separately in `templates/`. They may name cloud ser
 architecture icons, with pinned provenance and license notices in `templates/assets/README.md`. Use fictional
 workloads, test every template offline, and commit its SVG/PNG preview together with its source. Keep resource and
 enclosure additions opt-in; existing example SVGs must remain byte-identical.
+Enclosures with `style="panel"` reuse the original panel frame; measure their lid and full header band,
+including nested containers. Keep section headings clear of connections in the template previews.
 
 **Edit the README quick start.** It mirrors `examples/quickstart.py` line for line; change both.
 

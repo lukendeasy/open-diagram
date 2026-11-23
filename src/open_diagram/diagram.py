@@ -13,7 +13,7 @@ from dataclasses import dataclass, field, replace
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 from . import render as _render
-from .blocks import Block, BlockLike, Note, Panel, as_block
+from .blocks import Block, BlockLike, Note, Panel, _panel_frame, as_block
 from .fonts import cap_height, fmt, text_width
 from .svg import Canvas
 from .theme import Theme
@@ -101,6 +101,8 @@ class Group:
     stroke: Optional[str] = None
     children: List[Group] = field(default_factory=list)
     enclosure: bool = False
+    style: str = "outline"
+    tone: str = "default"
 
 
 @dataclass
@@ -252,16 +254,20 @@ class Diagram:
 
     def enclosure(self, label: str, members: Sequence[Union[Placed, Group]], sub: Optional[str] = None,
                   pad: float = 24, border: str = "dashed", fill: Optional[str] = None,
-                  stroke: Optional[str] = None) -> Group:
+                  stroke: Optional[str] = None, style: str = "outline", tone: str = "default") -> Group:
         """A cloud/account/network boundary around resources or previously created enclosures.
 
         border is solid, dashed or dotted, independently of resource or deployment state.
         Nested bounds include each child's full boundary and heading.
+        style='panel' uses the original panel's sloped lid and a filled header in the chosen theme tone.
         """
         if border not in ("solid", "dashed", "dotted"):
             raise ValueError(f"enclosure {label!r}: border must be solid, dashed or dotted")
         if not isinstance(pad, (int, float)) or not math.isfinite(pad) or pad < 0:
             raise ValueError(f"enclosure {label!r}: pad must be a non-negative finite number")
+        if style not in ("outline", "panel"):
+            raise ValueError(f"enclosure {label!r}: style must be outline or panel")
+        self.theme.tone(tone)
         nodes, children = [], []
         for member in members:
             if isinstance(member, Placed) and any(member is p for p in self.placed):
@@ -277,7 +283,7 @@ class Diagram:
         if not nodes:
             raise ValueError(f"enclosure {label!r}: needs at least one resource")
         g = Group(label, nodes, sub, pad, border=border, fill=fill, stroke=stroke,
-                  children=children, enclosure=True)
+                  children=children, enclosure=True, style=style, tone=tone)
         self.groups.append(g)
         return g
 
@@ -402,7 +408,9 @@ class Diagram:
 
     def _group_title_box(self, g: Group) -> Tuple[float, float, float, float]:
         t = self.theme
-        x, y, _, _ = g.rect
+        x, y, w, _ = g.rect
+        if g.style == "panel":
+            return x, y, w, t.lid + (t.header_h_sub if g.sub else t.header_h)
         tw = text_width(g.label, 12.5, "semibold")
         if g.sub:
             tw = max(tw, text_width(g.sub, t.small))
@@ -483,6 +491,8 @@ class Diagram:
         accent = t.tones.get("accent")
         uses_accent = accent is not None and any(
             isinstance(p.block, Panel) and t.tone(p.block.tone) == accent for p in self.placed)
+        uses_accent = uses_accent or (accent is not None and any(
+            g.style == "panel" and t.tone(g.tone) == accent for g in self.groups))
         has_steps = bool(self.steps) or any(getattr(p.block, "step", None) is not None for p in self.placed)
         if uses_accent and has_steps and t.badge_fill is not None and t.badge_fill != t.tones.get("dark"):
             return replace(t, badge_fill=t.tones.get("dark", "#2B3036"), badge_text=t.header_text_on_dark)
@@ -495,10 +505,15 @@ class Diagram:
         for g in self.groups:
             bounds = [p.rect() for p in g.members] + [child.rect for child in g.children]
             x0 = min(b[0] for b in bounds) - g.pad
-            y0 = min(b[1] for b in bounds) - g.pad - (t.line_h * (2 if g.sub else 1) + 6)
+            head_h = (t.lid + (t.header_h_sub if g.sub else t.header_h) if g.style == "panel"
+                      else t.line_h * (2 if g.sub else 1) + 6)
+            y0 = min(b[1] for b in bounds) - g.pad - head_h
             x1 = max(b[0] + b[2] for b in bounds) + g.pad
             y1 = max(b[1] + b[3] for b in bounds) + g.pad
-            if g.enclosure:
+            if g.style == "panel":
+                title_w, _ = Panel(g.label, sub=g.sub, tone=g.tone).measure(t)
+                x1 = max(x1, x0 + title_w)
+            elif g.enclosure:
                 title_w = max(text_width(g.label, 12.5, "semibold"), text_width(g.sub or "", t.small))
                 x1 = max(x1, x0 + title_w + 28)
             g.rect = (x0, y0, x1 - x0, y1 - y0)
@@ -526,9 +541,15 @@ class Diagram:
                        if any(g.enclosure for g in self.groups) else self.groups)
         for g in draw_groups:
             x, y, w, h = g.rect
-            c.rect(x, y, w, h, g.fill if g.fill is not None else t.group_fill,
-                   g.stroke if g.stroke is not None else t.group_stroke, 1.1, t.radius + 4,
-                   None if g.border == "solid" else g.border)
+            if g.style == "panel":
+                _panel_frame(c, x, y, w, h, t, t.tone(g.tone),
+                             g.fill if g.fill is not None else t.panel_fill,
+                             g.stroke if g.stroke is not None else t.panel_stroke,
+                             dash=None if g.border == "solid" else g.border)
+            else:
+                c.rect(x, y, w, h, g.fill if g.fill is not None else t.group_fill,
+                       g.stroke if g.stroke is not None else t.group_stroke, 1.1, t.radius + 4,
+                       None if g.border == "solid" else g.border)
         for line in self.links:
             dotted = line.kind == "planned"
             dash = _link_dash(line)
@@ -537,6 +558,18 @@ class Diagram:
         for g in self.groups:
             # Titles go above the lines, on a backing, so a line passing through reads as passing behind.
             x, y, w, h = g.rect
+            if g.style == "panel":
+                tone = t.tone(g.tone)
+                title_color, sub_color = t.header_colors(tone)
+                y += t.lid
+                hh = t.header_h_sub if g.sub else t.header_h
+                c.rect(x, y, w, hh, tone)
+                c.text_centered(g.label, x + t.pad + text_width(g.label, t.panel_title, "semibold") / 2,
+                                y + (18 if g.sub else hh / 2), t.panel_title, "semibold", title_color)
+                if g.sub:
+                    c.text(g.sub, x + t.pad, y + 36 + cap_height(t.panel_sub) / 2,
+                           t.panel_sub, "regular", sub_color)
+                continue
             bx, by, bw, bh = self._group_title_box(g)
             backing = t.paper if g.fill == "none" else (g.fill if g.fill is not None else t.group_fill)
             c.rect(bx, by, bw, bh, backing, None, radius=3)

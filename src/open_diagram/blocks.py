@@ -487,6 +487,18 @@ def _top_rounded(x, y, w, h, r) -> str:
             f"H{fmt(x + w - r)}Q{fmt(x + w)} {fmt(y)} {fmt(x + w)} {fmt(y + r)}V{fmt(y + h)}Z")
 
 
+def _panel_frame(c, x, y, w, h, t, tone, fill, stroke, width=1, dash=None):
+    """The shared sloped lid and filled body of a panel or resource container."""
+    lid = t.lid
+    if lid:
+        inset = min(lid * 0.7, w / 4)
+        c.path(f"M{fmt(x)} {fmt(y + lid)}L{fmt(x + inset)} {fmt(y)}H{fmt(x + w - inset)}"
+               f"L{fmt(x + w)} {fmt(y + lid)}Z", fill=shade(tone, 0.16), stroke=shade(tone, 0.32), width=0.8)
+        y, h = y + lid, h - lid
+    c.rect(x, y, w, h, fill, stroke, width, 2 if lid else t.radius, dash)
+    return y, h
+
+
 class Panel(Block):
     """The main block: a colored header with a title, then sections stacked inside, then an optional footer.
 
@@ -540,16 +552,9 @@ class Panel(Block):
         st = t.status(self.status)
         hh = self.head_h(t)
         tone = t.tone(self.tone)
-        lid = t.lid
-        if lid:
-            # The 3D top: a darker sloped strip above the header, like the lid of a box seen from the front.
-            inset = min(lid * 0.7, w / 4)
-            c.path(f"M{fmt(x)} {fmt(y + lid)}L{fmt(x + inset)} {fmt(y)}H{fmt(x + w - inset)}"
-                   f"L{fmt(x + w)} {fmt(y + lid)}Z", fill=shade(tone, 0.16), stroke=shade(tone, 0.32), width=0.8)
-            y, h = y + lid, h - lid
-        c.rect(x, y, w, h, st.fill if st else t.panel_fill, st.stroke if st else t.panel_stroke,
-               1.3 if st else 1, 2 if lid else t.radius, st.dash if st else None)
-        if lid:
+        y, h = _panel_frame(c, x, y, w, h, t, tone, st.fill if st else t.panel_fill,
+                            st.stroke if st else t.panel_stroke, 1.3 if st else 1, st.dash if st else None)
+        if t.lid:
             c.rect(x, y, w, hh, tone)
         else:
             c.path(_top_rounded(x, y, w, hh, t.radius), fill=tone)

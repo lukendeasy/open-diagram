@@ -12,6 +12,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from open_diagram import Diagram, Resource, SpecError, Theme, from_spec  # noqa: E402
 from open_diagram.cli import load  # noqa: E402
 from open_diagram.svg import Canvas  # noqa: E402
+from open_diagram.theme import shade  # noqa: E402
 
 NS = {"s": "http://www.w3.org/2000/svg"}
 
@@ -86,6 +87,40 @@ class ResourceTests(unittest.TestCase):
 
 
 class EnclosureTests(unittest.TestCase):
+    def test_panel_container_measures_lid_and_heading_and_embeds_nested_sections(self):
+        for lid in (0, 14):
+            with self.subTest(lid=lid):
+                d = Diagram("Containers", theme=Theme(lid=lid))
+                a = d.add(Resource("Bucket"))
+                inner = d.enclosure("An intentionally long resource section heading", [a],
+                                    style="panel", tone="accent", sub="A measured subtitle", border="solid")
+                outer = d.enclosure("Cloud account", [inner], style="panel", border="solid", fill="#FFF9E8")
+                svg, report = d.render()
+                self.assertEqual(report.problems, [])
+                x, y, w, h = d._group_title_box(inner)
+                self.assertEqual(h, lid + d.theme.header_h_sub)
+                self.assertLessEqual(y + h + inner.pad, a.y)
+                self.assertLessEqual(x + w, outer.rect[0] + outer.rect[2])
+                self.assertLess(outer.rect[1], inner.rect[1])
+                self.assertIn("A measured subtitle", d.describe())
+                self.assertEqual(shade(d.theme.tone("accent"), 0.16) in svg, bool(lid))
+                self.assertNotIn("States shown:", d.describe())
+
+    def test_panel_container_retains_selectable_border_and_readable_dark_header(self):
+        for border, dash in (("solid", None), ("dashed", "5 3.5"), ("dotted", "0.1 3.4")):
+            with self.subTest(border=border):
+                d = Diagram("Frame")
+                a = d.add(Resource("Compute"))
+                d.enclosure("Dark section", [a], style="panel", tone="dark", border=border)
+                svg, report = d.render()
+                self.assertEqual(report.problems, [])
+                tree = ET.fromstring(svg)
+                heading = next(p for p in tree.findall(".//s:path", NS)
+                               if p.find("s:title", NS) is not None and p.find("s:title", NS).text == "Dark section")
+                self.assertEqual(heading.get("fill"), d.theme.header_text_on_dark)
+                styles = {r.get("stroke-dasharray") for r in tree.findall(".//s:rect", NS)}
+                self.assertIn(dash, styles)
+
     def test_nested_enclosures_render_outer_first_and_contain_titles(self):
         d = Diagram("Nested")
         a = d.add(Resource("Extractor"))
@@ -118,7 +153,8 @@ class EnclosureTests(unittest.TestCase):
             with self.subTest(members=members), self.assertRaises(ValueError):
                 d.enclosure("Account", members, **kwargs)
         node = d.add(Resource("Node"))
-        for kwargs in ({"border": "dahsed"}, {"pad": -1}, {"pad": float("inf")}):
+        for kwargs in ({"border": "dahsed"}, {"pad": -1}, {"pad": float("inf")},
+                       {"style": "pannel"}, {"tone": "missing-tone"}):
             with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
                 d.enclosure("Account", [node], **kwargs)
 
@@ -177,6 +213,18 @@ class EnclosureTests(unittest.TestCase):
 
 
 class TemplateTests(unittest.TestCase):
+    def test_etl_sections_have_depth_and_links_avoid_their_headers(self):
+        d = load(str(ROOT / "templates/aws_etl.py"))
+        d.render()
+        self.assertEqual(len(d.groups), 7)
+        self.assertTrue(all(g.style == "panel" for g in d.groups))
+        self.assertNotEqual(d.theme.paper, "#FFFFFF")
+        for line in d.links:
+            for g in d.groups:
+                x, y, w, h = d._group_title_box(g)
+                self.assertFalse(any(x < sx < x + w and y < sy < y + h for sx, sy in line.samples),
+                                 f"{line.a.name} -> {line.b.name} crosses {g.label}'s header")
+
     def test_templates_render_offline_deterministically_and_match_previews(self):
         for path in sorted((ROOT / "templates").glob("*.py")):
             with self.subTest(template=path.name), patch("socket.socket", side_effect=AssertionError("network used")):
