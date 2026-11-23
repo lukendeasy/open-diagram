@@ -73,7 +73,8 @@ In ring and panels layouts, links leave from the sides that face each other unle
   {"text": "..."}, {"card": {"title", "rows": [[name, value]], "intro"}}, {"graph": {"nodes", "links", "at"}},
   or {"row": [sections]}).
 - Link: from, to (panel ids), kind (flow = solid, planned = dotted), label, start/end (left, right, top, bottom,
-  or auto: the side facing the other panel), lane (top or bottom: route around the picture), via_x / via_y, cross_ok.
+  or auto: the side facing the other panel), lane (top or bottom: route around the picture), via_x / via_y, cross_ok,
+  dash (solid, dashed or dotted; optional style override independent of deployment state).
 - Group: label, members (panel ids), sub.
 - States: live (default look), building, trial, planned, retiring. Use them only when the user cares about state.
 

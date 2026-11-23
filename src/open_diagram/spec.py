@@ -29,7 +29,7 @@ LAYOUTS = ("columns", "panels", "ring")
 PANEL_KEYS = {"id", "title", "sub", "status", "step", "footer", "tone", "width", "tiles", "cols", "label", "sections",
               "x", "y"}
 TILE_KEYS = {"label", "sub", "status"}
-LINK_KEYS = {"from", "to", "kind", "label", "start", "end", "lane", "via_x", "via_y", "cross_ok"}
+LINK_KEYS = {"from", "to", "kind", "label", "start", "end", "lane", "via_x", "via_y", "cross_ok", "dash"}
 GROUP_KEYS = {"label", "members", "sub"}
 
 
@@ -202,7 +202,7 @@ def from_spec(spec: Dict[str, Any]) -> Diagram:
             start, end = link.get("start", lane), link.get("end", lane)
         try:
             d.link(a, b, kind=link.get("kind", "flow"), label=link.get("label"), start=start, end=end,
-                   via_x=link.get("via_x"), via_y=via_y, cross_ok=link.get("cross_ok", False))
+                   via_x=link.get("via_x"), via_y=via_y, cross_ok=link.get("cross_ok", False), dash=link.get("dash"))
         except (TypeError, ValueError) as e:
             raise SpecError(f"{where}: {e}") from None
     if spec.get("statuses"):

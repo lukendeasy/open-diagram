@@ -31,7 +31,7 @@ needs a browser. CI (`.github/workflows/test.yml`) runs the tests on Python 3.10
 | `src/open_diagram/fonts.py` | `Face` (fontTools): glyph outlines, advance widths, GPOS pair kerning. `text_width`, `cap_height`, `wrap`, `fmt` |
 | `src/open_diagram/svg.py` | `Canvas`: SVG primitives; `text()` emits outline paths with a `<title>` holding the string |
 | `src/open_diagram/theme.py` | `Theme` (colors, statuses, tones, type sizes, spacing, 3D `lid`/`depth`), `Status`, `shade()` |
-| `src/open_diagram/blocks.py` | `Block` base and `Tile`, `Tiles`, `Text`, `Card`, `Note`, `Graph`, `Row`, `Panel` |
+| `src/open_diagram/blocks.py` | `Block` base and `Resource`, `Tile`, `Tiles`, `Text`, `Card`, `Note`, `Graph`, `Row`, `Panel` |
 | `src/open_diagram/diagram.py` | `Diagram`: placement, `link`/`group`, routing, `_check()`, legend and header, `render()`, `save()` |
 | `src/open_diagram/describe.py` | `describe(diagram)`: the plain-text description behind `Diagram.describe()` and the SVG `<desc>` |
 | `src/open_diagram/spec.py` | `from_spec(dict)` / `load_spec(path)`: JSON descriptions; `SpecError` names the place of every mistake |
@@ -42,11 +42,13 @@ needs a browser. CI (`.github/workflows/test.yml`) runs the tests on Python 3.10
 | `src/open_diagram/render.py` | `find_chrome()`, `svg_to_png()` (headless browser screenshot, optional Pillow crop) |
 | `src/open_diagram/fonts/` | Inter 4.1, four weights, under the SIL OFL (`OFL.txt`). Do not replace or subset without updating the license note |
 | `examples/` | One script per example; each defines `build() -> Diagram` and saves to `docs/images/<name>` |
+| `templates/` | Python cloud resource/ETL starters, cached provider artwork and attribution; `build() -> Diagram`, offline rendering |
 | `docs/images/` | Committed SVG and PNG output of the examples; the README embeds them |
 | `skills/open-diagram/SKILL.md` | Agent Skill for *using* the library; its fix table keys on problem-message wording |
 | `action.yml` | The GitHub Action (composite): installs the package from the action's own checkout, then runs `open-diagram check` or `draw` |
 | `.github/workflows/diagrams.yml` | Runs that action on this repo's examples (`uses: ./`) |
 | `tests/test_open_diagram.py` | unittest suite; `EXAMPLES` lists every example that must build with zero problems |
+| `tests/test_cloud.py` | Resource measurement/attachment, enclosure nesting/styles, template checks, and byte-identical existing SVGs |
 
 ## How a build flows
 
@@ -110,6 +112,11 @@ commit the SVG and PNG files together with the code. All examples must still rep
 `Diagram`, and a `__main__` block that saves to `docs/images/<name>`. Use an invented organization and say so in a
 `Note`; never real company names, logos or data. Prefer technical subjects that show a different kind of diagram.
 Add the name to `EXAMPLES` in the tests and a row to the README examples table.
+
+Cloud resource starters live separately in `templates/`. They may name cloud services and use unmodified provider
+architecture icons, with pinned provenance and license notices in `templates/assets/README.md`. Use fictional
+workloads, test every template offline, and commit its SVG/PNG preview together with its source. Keep resource and
+enclosure additions opt-in; existing example SVGs must remain byte-identical.
 
 **Edit the README quick start.** It mirrors `examples/quickstart.py` line for line; change both.
 

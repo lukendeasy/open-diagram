@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import List, Optional
 
-from .blocks import Block, Card, Graph, Note, Panel, Row, Text, Tile, Tiles
+from .blocks import Block, Card, Graph, Note, Panel, Resource, Row, Text, Tile, Tiles
 
 
 def _status_word(theme, key: Optional[str]) -> Optional[str]:
@@ -23,6 +23,8 @@ def _tile(theme, tile: Tile) -> str:
 
 
 def _block(theme, block: Block) -> str:
+    if isinstance(block, Resource):
+        return f"{block.label} ({block.sub})" if block.sub else block.label
     if isinstance(block, Tiles):
         items = "; ".join(_tile(theme, t) for t in block.items)
         return f"{block.label}: {items}" if block.label else items
@@ -48,7 +50,7 @@ def _name(placed) -> str:
     block = placed.block
     if isinstance(block, Panel):
         return block.title
-    if isinstance(block, Tile):
+    if isinstance(block, (Tile, Resource)):
         return block.label
     return placed.name
 
@@ -68,6 +70,8 @@ def _placed(theme, placed) -> str:
         if block.footer:
             text += f". {block.footer.replace(chr(10), ' ')}"
         return text
+    if isinstance(block, Resource):
+        return _block(theme, block)
     if isinstance(block, Tile):
         return _tile(theme, block)
     inner = _block(theme, block)
@@ -88,7 +92,9 @@ def describe(diagram) -> str:
         key.append("States shown: " + ", ".join(words) + ".")
     for kind in t.link_labels:
         if kind in kinds:
-            key.append(f"{'Dotted' if kind == 'planned' else 'Solid'} lines: {t.link_labels[kind].lower()}.")
+            styles = list(dict.fromkeys((line.dash or ("dotted" if kind == "planned" else "solid")).capitalize()
+                                        for line in diagram.links if line.kind == kind))
+            key.append(f"{'/'.join(styles)} lines: {t.link_labels[kind].lower()}.")
     if key:
         out.append(" ".join(key))
     if diagram.steps:
@@ -116,6 +122,8 @@ def describe(diagram) -> str:
                 text += f" ({t.link_labels['planned'].lower()})"
             if line.label:
                 text += f', labeled "{line.label}"'
+            if line.dash:
+                text += f" ({line.dash} line)"
             out.append(text)
     if diagram.note is not None:
         out.append("Note: " + _block(t, diagram.note))

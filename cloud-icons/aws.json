@@ -1,5 +1,6 @@
 {
   "api-gateway": "https://raw.githubusercontent.com/glincker/thesvg/551229c188b4ab6e2d8b5763b9633ec91206d04c/public/icons/aws-amazon-api-gateway/default.svg",
+  "athena": "https://raw.githubusercontent.com/glincker/thesvg/551229c188b4ab6e2d8b5763b9633ec91206d04c/public/icons/aws-amazon-athena/default.svg",
   "aurora": "https://raw.githubusercontent.com/glincker/thesvg/551229c188b4ab6e2d8b5763b9633ec91206d04c/public/icons/aws-amazon-aurora/default.svg",
   "bedrock": "https://raw.githubusercontent.com/glincker/thesvg/551229c188b4ab6e2d8b5763b9633ec91206d04c/public/icons/aws-amazon-bedrock/default.svg",
   "cloudfront": "https://raw.githubusercontent.com/glincker/thesvg/551229c188b4ab6e2d8b5763b9633ec91206d04c/public/icons/aws-amazon-cloudfront/default.svg",
@@ -18,9 +19,11 @@
   "elasticache": "https://raw.githubusercontent.com/glincker/thesvg/551229c188b4ab6e2d8b5763b9633ec91206d04c/public/icons/aws-amazon-elasticache/default.svg",
   "eventbridge": "https://raw.githubusercontent.com/glincker/thesvg/551229c188b4ab6e2d8b5763b9633ec91206d04c/public/icons/aws-amazon-eventbridge/default.svg",
   "fargate": "https://raw.githubusercontent.com/glincker/thesvg/551229c188b4ab6e2d8b5763b9633ec91206d04c/public/icons/aws-aws-fargate/default.svg",
+  "glue": "https://raw.githubusercontent.com/glincker/thesvg/551229c188b4ab6e2d8b5763b9633ec91206d04c/public/icons/aws-aws-glue/default.svg",
   "iam": "https://raw.githubusercontent.com/glincker/thesvg/551229c188b4ab6e2d8b5763b9633ec91206d04c/public/icons/aws-aws-identity-and-access-management/default.svg",
   "kms": "https://raw.githubusercontent.com/glincker/thesvg/551229c188b4ab6e2d8b5763b9633ec91206d04c/public/icons/aws-aws-key-management-service/default.svg",
   "lambda": "https://raw.githubusercontent.com/glincker/thesvg/551229c188b4ab6e2d8b5763b9633ec91206d04c/public/icons/aws-aws-lambda/default.svg",
+  "mwaa": "https://raw.githubusercontent.com/glincker/thesvg/551229c188b4ab6e2d8b5763b9633ec91206d04c/public/icons/aws-amazon-managed-workflows-for-apache-airflow/default.svg",
   "rds": "https://raw.githubusercontent.com/glincker/thesvg/551229c188b4ab6e2d8b5763b9633ec91206d04c/public/icons/aws-amazon-rds/default.svg",
   "route-53": "https://raw.githubusercontent.com/glincker/thesvg/551229c188b4ab6e2d8b5763b9633ec91206d04c/public/icons/aws-amazon-route-53/default.svg",
   "s3": "https://raw.githubusercontent.com/glincker/thesvg/551229c188b4ab6e2d8b5763b9633ec91206d04c/public/icons/aws-amazon-simple-storage-service/default.svg",

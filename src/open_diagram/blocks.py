@@ -38,11 +38,86 @@ class Block:
         length = h if side in ("left", "right") else w
         return length * 0.2, length * 0.8
 
+    def anchor(self, side: str, offset: float, w: float, h: float, t: Theme) -> Tuple[float, float]:
+        """A connection point, relative to this block's top-left corner."""
+        return {"left": (0, offset), "right": (w, offset),
+                "top": (offset, 0), "bottom": (offset, h)}[side]
+
 
 def _data_uri(path: str) -> str:
     kind = mimetypes.guess_type(path)[0] or "image/png"
     with open(path, "rb") as fh:
         return f"data:{kind};base64,{base64.b64encode(fh.read()).decode('ascii')}"
+
+
+class Resource(Block):
+    """A standalone cloud resource: a large local icon above measured labels, without a panel.
+
+    Missing artwork stays text-only. border optionally frames the resource independently of deployment state.
+    """
+
+    def __init__(self, label: str, icon: Optional[str] = None, sub: Optional[str] = None,
+                 icon_size: float = 64, max_width: float = 180, border: Optional[str] = None,
+                 name: Optional[str] = None):
+        if not label:
+            raise ValueError("resource: label must not be empty")
+        for key, value in (("icon_size", icon_size), ("max_width", max_width)):
+            if not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
+                raise ValueError(f"resource {label!r}: {key} must be a positive finite number")
+        if border not in (None, "solid", "dashed", "dotted"):
+            raise ValueError(f"resource {label!r}: border must be solid, dashed, dotted or None")
+        if icon and not os.path.isfile(icon):
+            raise FileNotFoundError(f"resource {label!r}: icon file not found: {icon}")
+        self.label, self.icon, self.sub = label, icon, sub
+        self.icon_size, self.max_width, self.border = icon_size, max_width, border
+        self.name = name or label
+
+    def _lines(self, t):
+        room = max(1, self.max_width - 2 * t.pad)
+        return (wrap(self.label, t.tile, room, "semibold"),
+                wrap(self.sub, t.tile_sub, room) if self.sub else [])
+
+    def measure(self, t):
+        main, sub = self._lines(t)
+        image_h = self.icon_size + t.tile_gap if self.icon else 0
+        w = max(self.icon_size if self.icon else 0, lines_width(main, t.tile, "semibold"),
+                lines_width(sub, t.tile_sub)) + 2 * t.pad
+        h = 2 * t.pad + image_h + (len(main) + len(sub)) * t.line_h + (4 if sub else 0)
+        return w, h
+
+    def draw(self, c, x, y, w, h, t, report):
+        need_w, need_h = self.measure(t)
+        if w + 0.5 < need_w or h + 0.5 < need_h:
+            report(f"resource {self.label!r} needs {need_w:g} x {need_h:g} px but has {w:g} x {h:g} px")
+        if self.border:
+            c.rect(x, y, w, h, t.paper, t.tile_stroke, 1, t.radius,
+                   None if self.border == "solid" else self.border)
+        cy = y + t.pad
+        if self.icon:
+            c.image(_data_uri(self.icon), x + (w - self.icon_size) / 2, cy, self.icon_size, self.icon_size)
+            cy += self.icon_size + t.tile_gap
+        main, sub = self._lines(t)
+        for line in main:
+            c.text_centered(line, x + w / 2, cy + t.line_h / 2, t.tile, "semibold", t.ink)
+            cy += t.line_h
+        if sub:
+            cy += 4
+        for line in sub:
+            c.text_centered(line, x + w / 2, cy + t.line_h / 2, t.tile_sub, "regular", t.muted)
+            cy += t.line_h
+
+    def ports(self, side, w, h, t):
+        if self.icon and side in ("left", "right"):
+            return t.pad + self.icon_size / 2, t.pad + self.icon_size / 2
+        return super().ports(side, w, h, t)
+
+    def anchor(self, side, offset, w, h, t):
+        if self.icon and self.border is None:
+            if side in ("left", "right"):
+                return (w + (-self.icon_size if side == "left" else self.icon_size)) / 2, offset
+            if side == "top":
+                return offset, t.pad
+        return super().anchor(side, offset, w, h, t)
 
 
 # --------------------------------------------------------------------------------------------------------- tiles

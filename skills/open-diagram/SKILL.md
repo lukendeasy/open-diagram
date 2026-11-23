@@ -12,7 +12,11 @@ open-diagram draws diagrams from a short Python script. It measures every label,
 For named AWS, Azure or Google Cloud services that need icons, load the companion
 [cloud-icons skill](../cloud-icons/SKILL.md). The repository's top-level [cloud-icons directory](../../cloud-icons/)
 contains separate AWS, Azure and GCP mappings. The skill's Python workflow downloads and embeds them with
-`Tile(icon=...)`. Install the companion skill if it is missing and point its `ICON_DIR` at the mappings.
+`Resource(icon=...)` or `Tile(icon=...)`. For cloud topology and ETL DAGs, start with the repository's
+[cloud templates](../../templates/README.md): place each `Resource` independently with its large icon and label,
+then use `d.enclosure()` to nest account, network, subnet or logical boundaries. Choose `border="solid"`, `"dashed"`
+or `"dotted"` independently of deployment status; use link `dash="dashed"` and a separate `control` kind for job
+orchestration. Use compact `Tile` panels for summaries. Install the companion skill if it is missing and point its `ICON_DIR` at the mappings.
 Use that Python workflow for icon diagrams; JSON, Mermaid and MCP inputs do not support tile icons.
 
 For diagrams without icons, if the open-diagram MCP tools are available (`format_guide`, `check`, `draw`, `describe`), use them: read `format_guide` once, write the diagram as JSON, call `check` until it reports 0 problems, then `draw` and look at the picture it returns. Skip to step 5 for the final review. Otherwise:

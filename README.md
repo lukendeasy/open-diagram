@@ -90,6 +90,7 @@ Each example is one script in [`examples/`](https://github.com/lukendeasy/open-d
 | `Panel(title, *sections, sub=, status=, step=, footer=, tone=)` | The main box: a colored header, sections stacked inside, an optional footer such as "Owner: Data team" |
 | `Tiles(items, cols=, label=)` | A grid of tiles with one cell size. A plain list of labels inside a `Panel` becomes `Tiles` |
 | `Tile(label, sub=, status=, icon=)` | One small box. `icon` takes a PNG or SVG file you supply; for AWS, Azure and Google Cloud, see [Cloud service icons](https://github.com/lukendeasy/open-diagram#cloud-service-icons) |
+| `Resource(label, icon=, sub=, icon_size=64, border=)` | A standalone cloud resource: large icon above its workload label and service name, with no panel or raised tile |
 | `Card(title, rows, intro=)` | A worked example: rows of name and value |
 | `Graph(nodes, links, at)` | Things on a grid, joined by labelled lines. The build reports labels that touch nodes |
 | `Row(*sections)` | Sections side by side inside a panel |
@@ -103,7 +104,8 @@ Each example is one script in [`examples/`](https://github.com/lukendeasy/open-d
 | `columns([[...], [...]])` and `stack([...])` | Place columns left to right, each one top to bottom |
 | `ring(blocks, center=[...])` | Place blocks around a circle, with optional blocks in the middle; returns both lists |
 | `group(label, members, sub=)` | A shaded, dashed area around some blocks |
-| `link(a, b, kind=, label=, start=, end=, via_x=, via_y=)` | An arrow. `kind="planned"` is dotted. `start="auto"` and `end="auto"` pick the sides that face each other. `via_y` routes it through a lane, for example above everything |
+| `enclosure(label, members, border=, sub=, pad=, fill=, stroke=)` | A boundary around resources or nested enclosures; `border` is `solid`, `dashed` or `dotted`, independent of deployment state |
+| `link(a, b, kind=, label=, start=, end=, via_x=, via_y=, dash=)` | An arrow. `kind="planned"` is dotted. `dash` optionally overrides the stroke style. `start="auto"` and `end="auto"` pick the sides that face each other. `via_y` routes it through a lane, for example above everything |
 | `save(path)` | Write the SVG and PNG, print a summary, raise `LayoutError` if there are problems |
 | `render()` | Return the SVG text and a report without writing files |
 | `describe()` | Return what the picture says in plain words |
@@ -155,7 +157,7 @@ Any agent or language can describe a picture as plain data, with no Python:
 | Top level | `title` (required); one layout: `columns` (a list of columns, each a list of panels), `ring` (panels around a circle, with optional `center` and `start_angle`) or `panels` (each with `x` and `y`); `subtitle`, `tag`, `note` (`title`, `lines`), `steps` (`[[1, "First"]]`), `steps_label`, `gap`, `row_gap`, `valign`, `groups`, `links`, `statuses`, `theme` |
 | Panel | `title` (required), `id`, `sub`, `status`, `step`, `footer`, `tone`, `width`, `x` and `y` (in `panels` only), `tiles` with `cols` and `label`, or `sections` (each `{"tiles": [...]}`, `{"text": "..."}`, `{"card": {...}}`, `{"graph": {...}}` or `{"row": [...]}`) |
 | Tile | a string, or `{"label", "sub", "status"}` |
-| Link | `from` and `to` (panel ids), `kind` (`flow` or `planned`), `label`, `start` and `end` (a side, or `auto` for the side facing the other panel: the default in `ring` and `panels`), `lane` (`top` or `bottom`, to route around the picture), `via_x`, `via_y`, `cross_ok` |
+| Link | `from` and `to` (panel ids), `kind` (`flow` or `planned`), `label`, `start` and `end` (a side, or `auto` for the side facing the other panel: the default in `ring` and `panels`), `lane` (`top` or `bottom`, to route around the picture), `via_x`, `via_y`, `cross_ok`, `dash` (`solid`, `dashed` or `dotted`, independent of state) |
 | Group | `label`, `members` (panel ids), `sub` |
 
 Every mistake names its place, for example `columns[0][0].tiles[2]: unknown key(s) 'colour'`. From Python, use `from_spec(data)`. The full example is [`examples/email_delivery.json`](https://github.com/lukendeasy/open-diagram/blob/main/examples/email_delivery.json).
@@ -262,9 +264,9 @@ Agents changing the library itself should start with [AGENTS.md](https://github.
 
 ### Cloud service icons
 
-The [`cloud-icons/`](https://github.com/lukendeasy/open-diagram/tree/main/cloud-icons) folder has one file each for [AWS](https://github.com/lukendeasy/open-diagram/blob/main/cloud-icons/aws.json), [Azure](https://github.com/lukendeasy/open-diagram/blob/main/cloud-icons/azure.json) and [Google Cloud](https://github.com/lukendeasy/open-diagram/blob/main/cloud-icons/gcp.json). Each file lists 30 services, such as `s3` or `lambda`, with the web address of that service's SVG icon. Every address points to one fixed version of the icon file, so later changes to the icon collection do not change your diagrams. A third party, theSVG, hosts the files; once downloaded, they work offline.
+The [`cloud-icons/`](https://github.com/lukendeasy/open-diagram/tree/main/cloud-icons) folder has one file each for [AWS](https://github.com/lukendeasy/open-diagram/blob/main/cloud-icons/aws.json), [Azure](https://github.com/lukendeasy/open-diagram/blob/main/cloud-icons/azure.json) and [Google Cloud](https://github.com/lukendeasy/open-diagram/blob/main/cloud-icons/gcp.json). Each file lists service keys, such as `s3` or `lambda`, with the web address of that service's SVG icon. AWS also includes `mwaa`, `glue` and `athena` for ETL diagrams. Every address points to one fixed version of the icon file, so later changes to the icon collection do not change your diagrams. A third party, theSVG, hosts the files; once downloaded, they work offline.
 
-The [cloud-icons skill](https://github.com/lukendeasy/open-diagram/blob/main/skills/cloud-icons/SKILL.md) tells an agent how to pick icons, download them, and pass each file to `Tile(icon=...)`. The finished SVG and PNG contain the icons themselves, so you can share them without the icon links. Icons work from Python only: JSON, Mermaid and the MCP server do not take them. For Claude Code, copy the skill into your skills folder:
+The [cloud-icons skill](https://github.com/lukendeasy/open-diagram/blob/main/skills/cloud-icons/SKILL.md) tells an agent how to pick icons, download them, and pass each file to `Resource(icon=...)` or `Tile(icon=...)`. The finished SVG and PNG contain the icons themselves, so you can share them without the icon links. Icons work from Python only: JSON, Mermaid and the MCP server do not take them. For Claude Code, copy the skill into your skills folder:
 
 ```bash
 cp -r skills/cloud-icons ~/.claude/skills/
@@ -273,6 +275,30 @@ cp -r skills/cloud-icons ~/.claude/skills/
 The icon lists stay in your copy of this repo. If you run the skill's example from another folder, set its `ICON_DIR` to the `cloud-icons/` folder in your copy.
 
 The icons belong to Amazon, Microsoft and Google, and keep their own terms; this project's MIT license does not cover them. The skill links each provider's terms and says how to credit the icons when you share a diagram.
+
+### Cloud resource and ETL templates
+
+For cloud topology, start with the [cloud templates](templates/README.md). Resources have large service icons with
+labels underneath, and connect individually inside nested account, VPC, subnet or logical enclosures.
+Enclosure borders can be solid, dashed or dotted. Dashed task-control connections are independent of planned status.
+
+The [AWS ETL template](templates/aws_etl.py) shows MWAA coordinating three Lambda extractors, with separate S3,
+Glue, catalog, Athena and QuickSight resources. The [connectivity template](templates/aws_architecture.py) shows
+nested network boundaries. Both include cached icons and render offline. The resource/enclosure API accepts
+Azure and GCP artwork too. These Python templates live in the checkout, alongside [icon credits](templates/assets/README.md).
+
+![AWS ETL resource DAG with large icons and dashed nested boundaries](docs/images/aws_etl.png)
+
+```python
+from open_diagram import Diagram, Resource, Theme
+
+d = Diagram("Cloud resources", theme=Theme(link_labels={"flow": "Data flow"}))
+extractor = d.add(Resource("Extractor", sub="AWS Lambda", icon="assets/lambda.svg"))
+bucket = d.right_of(extractor, Resource("Raw data", sub="Amazon S3", icon="assets/s3.svg"))
+d.link(extractor, bucket, label="objects")
+workers = d.enclosure("Extraction", [extractor], border="dashed")
+d.enclosure("AWS account", [workers, bucket], border="solid", pad=40)
+```
 
 ## Contributing
 

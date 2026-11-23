@@ -13,7 +13,7 @@ The mappings live separately from this skill in the repository's top-level `clou
 | Azure | [cloud-icons/azure.json](../../cloud-icons/azure.json) |
 | GCP | [cloud-icons/gcp.json](../../cloud-icons/gcp.json) |
 
-Each file maps 30 service keys directly to SVG URLs, without a provider wrapper. For example, the `s3` entry in
+Each file maps service keys directly to SVG URLs, without a provider wrapper. For example, the `s3` entry in
 `aws.json` is the Amazon S3 icon. Read the selected provider's keys before choosing services; do not construct URLs
 from names.
 
@@ -28,16 +28,20 @@ from names.
 | Multi-cloud | Select each service from its own provider group; group panels by cloud and keep labels explicit |
 
 Use a service icon when the request names that service. For abstract concepts such as "backend", unspecified
-clouds, or services absent from the mapping, use labeled tiles without icons. Do not infer a provider or replace a
+clouds, or services absent from the mapping, use labeled resources or tiles without icons. Do not infer a provider or replace a
 missing service with a different product's logo. The Azure `block-blob` key is specifically a **Block Blob** resource
 in Blob Storage; `event-grid` uses the Event Grid Topics symbol. Label those resources accordingly.
 
-Keep one icon family per provider. Preserve colors, orientation and proportions, with the product name beside each
-icon. `Tile` already uses a consistent 16 px icon box; use spacing and labels to unify a multi-cloud picture.
+Keep one icon family per provider. Preserve colors, orientation and proportions, with the product name beside or below
+each icon. For cloud topology or an ETL DAG, prefer `Resource(icon=...)`: it draws a 64 px standalone icon with labels
+underneath, and every resource can connect independently. Start with the repository's
+[cloud templates](../../templates/README.md); use `d.enclosure()` for nested accounts, networks and logical groups,
+with `border="solid"`, `"dashed"` or `"dotted"`. For dense panel summaries, `Tile` retains its 16 px icon box.
+Use spacing and labels to unify a multi-cloud picture.
 
 ## Download first, then embed local files
 
-`Tile(icon=...)` accepts a local PNG or SVG path, not an HTTP URL. The Python API is the icon workflow: JSON tile
+`Resource(icon=...)` and `Tile(icon=...)` accept local PNG or SVG paths, not HTTP URLs. The Python API is the icon workflow: JSON tile
 specs, Mermaid input and MCP tools do not accept an icon field. Keep using those formats for diagrams without icons.
 
 The mapping files stay in the repository even when the skill is copied to an agent's skills folder. Neither the
@@ -109,6 +113,11 @@ def build():
 if __name__ == "__main__":
     build().save("out/cloud-icons/service-flow")
 ```
+
+The example uses compact panel tiles. For a resource diagram, pass those same downloaded paths to `Resource` and
+place them individually, then connect the returned placements and add enclosures. Enclosure borders and optional
+link `dash="dashed"` are visual styles; do not assign `status="planned"` or `kind="planned"` just to obtain dashes.
+Give orchestration its own theme line kind, such as `control`, so the key explains the connection's meaning.
 
 The URL is the download source. During rendering, open-diagram embeds each local SVG as a base64 data URI in the
 compiled SVG. PNG generation uses that embedded image, so sharing either output does not require the recipient to
